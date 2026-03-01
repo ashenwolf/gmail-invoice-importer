@@ -7,7 +7,7 @@ Automatically pulls email attachments tagged with a Gmail label, classifies them
 ## How it works
 
 1. Gmail is scanned for **inbox** threads with your chosen label (default: `invoices`). Archive state is the sole deduplication mechanism — already-archived threads are never re-processed.
-2. PDF attachments are sent to **Gemini 1.5 Flash** for classification:
+2. PDF attachments are sent to **Gemini 2.5 Flash** for classification:
    - Returns document type (`invoice` | `receipt` | `unknown`) + the date printed on the document.
    - Receipts and unknowns are skipped — not saved to Drive.
    - If Gemini can't extract a date, the thread's email date is used as fallback.
@@ -20,10 +20,10 @@ Automatically pulls email attachments tagged with a Gmail label, classifies them
 
 | File | Responsibility |
 |---|---|
-| `utils.ts` | Shared `withRetry` helper |
+| `utils.ts` | Shared `withRetry` helper, `buildQueryString` utility |
 | `config.ts` | All settings via `ScriptProperties` / `UserProperties` |
 | `auth.ts` | Service account JWT minting, token exchange, caching |
-| `gemini.ts` | PDF classification via Gemini 1.5 Flash REST API |
+| `gemini.ts` | PDF classification via Gemini 2.5 Flash REST API |
 | `drive.ts` | Drive REST API — folder resolution and file upload |
 | `gmail.ts` | Gmail REST API — scanning, attachments, archiving |
 | `main.ts` | Public entry points, trigger management |
@@ -232,6 +232,7 @@ Receipts and unknowns are silently skipped and logged.
 | `installTrigger()` | Install/reset hourly trigger |
 | `removeTriggers()` | Remove all triggers |
 | `printConfig()` | Log current settings |
+| `clearTokenCache()` | Clear cached access tokens (run after updating delegation scopes) |
 
 ---
 
@@ -479,8 +480,10 @@ This is meaningful setup overhead and is documented in the [Google Cloud service
 
 ## Notes
 
-- Gemini 1.5 Flash free tier: 15 requests/minute, 1,500/day. At hourly runs with typical invoice volumes this is nowhere near the limit.
-- `temperature: 0` is set on the Gemini call — deterministic classification, not creative writing.
+- Gemini 2.5 Flash free tier: 15 requests/minute, 1,500/day. At hourly runs with typical invoice volumes this is nowhere near the limit.
+- `temperature: 0` and `responseMimeType: "application/json"` are set on the Gemini call — deterministic classification with structured JSON output.
+- The Gemini 2.5 response parser handles "thinking" model output by filtering out internal reasoning parts and extracting only the final JSON.
 - All config (folder ID, API key, labels) is stored in `UserProperties` — never in code or the repo.
+- Access tokens are cached per scope — Gmail and Drive tokens are stored separately to avoid scope mismatch errors.
 - Each thread's error is isolated — one bad PDF won't abort the batch, and failed threads stay in inbox for retry.
 - Folder creation is idempotent — existing folders are reused, never duplicated.
