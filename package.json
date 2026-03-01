@@ -1,0 +1,16 @@
+{
+  "name": "invoice-collector",
+  "version": "1.0.0",
+  "description": "Gmail → Drive invoice collector for Google Apps Script",
+  "scripts": {
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "open": "clasp open",
+    "logs": "clasp logs"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.83",
+    "typescript": "^5.4.5"
+  }
+}

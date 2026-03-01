@@ -1,0 +1,22 @@
+# clasp credentials — contains your personal Google OAuth token
+.clasprc.json
+
+# clasp project config — contains your Apps Script project ID
+# Remove this line if you want to commit the script ID (it's not a secret,
+# but keeping it out of the repo means forks can't push to your project)
+.clasp.json
+
+# Service account key — NEVER commit this
+/*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!appsscript.json
+
+# Dependencies
+node_modules/
+
+# TypeScript build output (clasp handles compilation, no dist needed)
+dist/
+
+# some debugging json files
